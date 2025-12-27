@@ -9,6 +9,7 @@ import {
   completeBooking 
 } from '../controllers/bookingController.js'
 import { verifyToken, isAdmin } from '../middlewares/authMiddleware.js'
+import { validate } from '../middlewares/validateMiddleware.js'
 
 const router = express.Router()
 
@@ -16,7 +17,7 @@ const router = express.Router()
 router.get('/', verifyToken, getBookings)
 
 // Buat booking baru
-router.post('/', verifyToken, createBooking)
+router.post('/', verifyToken, validate(['field_id', 'booking_date', 'time_slot_id']), createBooking)
 
 // Update status booking (admin)
 router.put('/:id/status', verifyToken, isAdmin, updateBookingStatus)

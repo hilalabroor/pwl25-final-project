@@ -8,7 +8,7 @@ const router = express.Router()
 router.get('/', verifyToken, getTimeSlots)
 
 // ambil semua time slots
-router.get('/', verifyToken, getTimeSlots)
+// router.get('/', verifyToken, getTimeSlots)
 
 // tambah time slot (admin)
 router.post('/', verifyToken, isAdmin, addTimeSlot)
