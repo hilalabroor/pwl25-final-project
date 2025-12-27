@@ -4,11 +4,14 @@ import authRoutes from './routes/authRoutes.js'
 import fieldRoutes from './routes/fieldRoutes.js'
 import bookingRoutes from './routes/bookingRoutes.js'
 import timeSlotRoutes from './routes/timeSlotRoutes.js'
+import { errorHandler } from './middlewares/errorHandler.js'
 
 const app = express()
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 app.use(cors())
-app.use(express.json())
+app.use(errorHandler)
 
 //endpoint
 app.use('/api/auth', authRoutes)
