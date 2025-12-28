@@ -90,6 +90,7 @@ onMounted(async () => {
   try {
     const payload = decodeJwtPayload(token)
     if (!payload) throw new Error('Token tidak valid')
+    
     userRole.value = payload.role || 'user'
     displayName.value = payload.name || payload.username || 'User'
   } catch (error) {

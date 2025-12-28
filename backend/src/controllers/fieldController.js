@@ -1,10 +1,27 @@
 import { db } from '../config/database.js'
 
 // Ambil semua lapangan
+// export async function getFields(req, res) {
+//   const [rows] = await db.query('SELECT * FROM fields')
+//   res.json(rows)
+// }
+
 export async function getFields(req, res) {
-  const [rows] = await db.query('SELECT * FROM fields')
+  const [rows] = await db.query(
+    `SELECT 
+      f.id,
+      f.name,
+      f.type,
+      f.deskripsi,
+      ts.price AS price
+    FROM fields f
+    LEFT JOIN time_slots ts ON ts.field_id = f.id
+    GROUP BY f.id, f.name, f.type, f.deskripsi
+  `)
+
   res.json(rows)
 }
+
 
 // CRUD lapangan (untuk admin)
 export async function addField(req, res) {
