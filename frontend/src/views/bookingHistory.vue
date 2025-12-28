@@ -100,19 +100,22 @@ onMounted(() => {
 <style scoped>
 /* Container pusat */
 .container {
-  max-width: 800px;
-  margin: 0 auto;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   padding: 20px;
+  box-sizing: border-box;
   text-align: center;
   font-family: Arial, sans-serif;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .content {
   flex: 1;
   margin-top: 50px;
+  overflow: auto;
 }
 
 /* Tombol kembali */

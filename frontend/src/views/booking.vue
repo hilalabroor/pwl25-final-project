@@ -40,8 +40,7 @@
                 class="slot-item" 
                 :class="{ 'booked': !s.available, 'selected': selectedSlot === s.id }"
                 @click="s.available ? selectedSlot = s.id : null">
-                <span class="time">{{ s.start_time.substring(0,5) }}</span>
-                <span class="price">Rp {{ s.price.toLocaleString() }}</span>
+                <span class="time">{{ s.display }}</span>
               </div>
             </div>
           </div>
@@ -123,11 +122,34 @@ async function loadSlots() {
   if (!selectedField.value || !date.value) return
 
   try {
-    const data = await apiFetch(`/api/bookings/time-slots?field_id=${selectedField.value}&date=${encodeURIComponent(date.value)}`)
-    slots.value = (Array.isArray(data) ? data : []).map(s => ({
-      ...s,
-      available: typeof s.available === 'boolean' ? s.available : s.status !== 1,
-    }))
+    const apiSlots = await apiFetch(`/api/bookings/time-slots?field_id=${selectedField.value}&date=${encodeURIComponent(date.value)}`) || []
+
+    // generate hourly slots from 07:00 to 12:00 (07-08, 08-09, ..., 11-12)
+    const startHour = 7
+    const endHour = 12
+    const generated = []
+    for (let h = startHour; h < endHour; h++) {
+      const hh = String(h).padStart(2, '0')
+      const hhNext = String(h + 1).padStart(2, '0')
+      // try to find matching api slot by start_time hour
+      const match = (Array.isArray(apiSlots) ? apiSlots : []).find(a => {
+        try {
+          return Number(a.start_time?.split(':')[0]) === h
+        } catch (e) { return false }
+      })
+
+      generated.push({
+        id: `${selectedField.value}_${date.value}_${h}`,
+        field_id: selectedField.value,
+        start_time: `${hh}:00:00`,
+        end_time: `${hhNext}:00:00`,
+        display: `${hh}.00-${hhNext}.00`,
+        price: match?.price || 0,
+        available: typeof match?.available === 'boolean' ? match.available : (match ? match.status !== 1 : true),
+      })
+    }
+
+    slots.value = generated
   } catch (err) {
     message.value = err?.message || 'Gagal mengambil slot'
   }
@@ -189,11 +211,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-bg { padding: 40px 0; min-height: 100vh; display: flex; flex-direction: column; }
-.booking-container { max-width: 550px; margin: auto; padding: 0 20px; flex: 1; }
+.page-bg { padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+.booking-container { max-width: 1430px; width: 100%; margin: 0; padding: 0 20px; flex: 1; display: flex; flex-direction: column; align-items: stretch; }
 .header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
 .back-btn { background: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-.booking-card { background: white; border-radius: 30px; padding: 35px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }
+.booking-card { background: white; border-radius: 0; padding: 35px; box-shadow: none; width: 100%; flex: 1; display: flex; flex-direction: column; }
 .form-group { margin-bottom: 20px; text-align: left; display: flex; flex-direction: column; }
 label { font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 10px; }
 select, input { padding: 15px; border: 2px solid #f0f0f0; border-radius: 15px; font-family: inherit; font-size: 1rem; }
