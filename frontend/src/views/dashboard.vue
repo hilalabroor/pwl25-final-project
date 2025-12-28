@@ -21,12 +21,12 @@
         <div class="cards-grid">
           <div class="card" v-for="f in featuredFields" :key="f.id">
             <div class="card-image">
-              <img :src="f.image" :alt="f.name" />
+              <img :src="f.image" />
             </div>
             <div class="card-body">
               <div class="card-title">{{ f.name }}</div>
               <div class="card-subtitle">{{ f.location }}</div>
-              <div class="card-price">Harga mulai: <span class="price">{{ formatRupiah(f.price) }}</span></div>
+              <div class="card-price">Harga: <span class="price">{{ formatRupiah(f.price) }}</span></div>
               <button class="card-button" type="button" @click="goBooking(f)">BOOKING SEKARANG</button>
             </div>
           </div>
