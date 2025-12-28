@@ -18,7 +18,7 @@
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input v-model="password" type="password" placeholder="Password Minimal 6 Karakter" required />
+          <input v-model="password" type="password" placeholder="Masukkan Password" required />
         </div>
         <button type="submit" class="btn-submit" :disabled="loading">Daftar Sekarang</button>
       </form>

@@ -49,45 +49,14 @@
       <div class="section-inner">
         <h2 class="section-title">Explore Our Fields</h2>
         <div class="field-grid">
-          <div class="field-card">
+          <div class="field-card" v-for="f in fields" :key="f.id">
             <div class="field-image">
-              <img
-                src="https://images.unsplash.com/photo-1712325485668-6b6830ba814e?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt="Indoor Futsal Courts"
-              />
+              <img :src="f.image ? absoluteImage(f.image) : 'https://images.unsplash.com/photo-1604754742621-2f6d3b35a1d9?auto=format&fit=crop&w=1200&q=80'" :alt="f.name" />
             </div>
             <div class="field-body">
-              <h3 class="field-title">Indoor Futsal Courts</h3>
-              <p class="field-desc">Nyaman untuk main kapan pun tanpa khawatir cuaca.</p>
-              <button class="btn btn-ghost" type="button" @click="goRegister">Lihat Detail Lapangan</button>
-            </div>
-          </div>
-
-          <div class="field-card">
-            <div class="field-image">
-              <img
-                src="https://images.unsplash.com/photo-1718488978285-e994b0ad8144?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDl8fHxlbnwwfHx8fHw%3D"
-                alt="Outdoor Synthetic Pitch"
-              />
-            </div>
-            <div class="field-body">
-              <h3 class="field-title">Outdoor Synthetic Pitch</h3>
-              <p class="field-desc">Lapangan outdoor dengan rumput sintetis berkualitas.</p>
-              <button class="btn btn-ghost" type="button" @click="goRegister">Lihat Detail Lapangan</button>
-            </div>
-          </div>
-
-          <div class="field-card">
-            <div class="field-image">
-              <img
-                src="https://plus.unsplash.com/premium_photo-1671466192309-287ab1e6d43a?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt="Recreational Fields"
-              />
-            </div>
-            <div class="field-body">
-              <h3 class="field-title">Indoor Futsal Courts</h3>
-              <p class="field-desc">Cocok untuk fun match bareng teman dan komunitas.</p>
-              <button class="btn btn-ghost" type="button" @click="goRegister">Lihat Detail Lapangan</button>
+              <h3 class="field-title">{{ f.name }}</h3>
+              <p class="field-desc">{{ f.deskripsi || f.type || 'Deskripsi tidak tersedia' }}</p>
+              <button class="btn btn-ghost" type="button" @click="() => $router.push({ path: '/booking', query: { field_id: f.id } })">Lihat Detail Lapangan</button>
             </div>
           </div>
         </div>
@@ -121,17 +90,36 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { apiFetch, API_BASE_URL } from '../api.js'
+
 const router = useRouter()
 const goRegister = () => router.push('/register')
 const goLogin = () => router.push('/login')
-
 const goHome = () => router.push('/')
+
+const fields = ref([])
 
 function scrollToFields() {
   const el = document.getElementById('fields')
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
+
+function absoluteImage(path) {
+  if (!path) return ''
+  if (path.startsWith('http') || path.startsWith('data:')) return path
+  return API_BASE_URL.replace(/\/$/, '') + path
+}
+
+onMounted(async () => {
+  try {
+    const data = await apiFetch('/api/fields')
+    fields.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    fields.value = []
+  }
+})
 </script>
 
 <style scoped>

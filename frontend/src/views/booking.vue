@@ -11,7 +11,7 @@
 
         <div v-if="selectedFieldData" class="field-detail">
           <div class="field-image-lg">
-            <img :src="selectedFieldData.image || 'https://images.unsplash.com/photo-1604754742621-2f6d3b35a1d9?auto=format&fit=crop&w=1200&q=80'" :alt="selectedFieldData.name" />
+              <img :src="selectedFieldData ? (selectedFieldData.image ? absoluteImage(selectedFieldData.image) : 'https://images.unsplash.com/photo-1604754742621-2f6d3b35a1d9?auto=format&fit=crop&w=1200&q=80') : 'https://images.unsplash.com/photo-1604754742621-2f6d3b35a1d9?auto=format&fit=crop&w=1200&q=80'" :alt="selectedFieldData?.name || 'Lapangan'" />
           </div>
           <div class="field-info">
             <h3 class="field-name">{{ selectedFieldData.name }}</h3>
@@ -50,7 +50,7 @@
                <span>Total Bayar:</span>
                <span class="final-price">Rp {{ totalPrice.toLocaleString() }}</span>
              </div>
-             <button type="submit" class="btn-confirm" :disabled="loading">Bayar & Booking Sekarang</button>
+             <button type="submit" class="btn-confirm" :disabled="loading">Booking Sekarang</button>
           </div>
         </form>
       </div>
@@ -86,7 +86,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { apiFetch } from '../api.js'
+import { apiFetch, API_BASE_URL } from '../api.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -109,6 +109,12 @@ const totalPrice = computed(() => {
 const selectedFieldData = computed(() => {
   return fields.value.find(f => String(f.id) === String(selectedField.value)) || null
 })
+
+function absoluteImage(path) {
+  if (!path) return ''
+  if (path.startsWith('http') || path.startsWith('data:')) return path
+  return API_BASE_URL.replace(/\/$/, '') + path
+}
 
 async function loadFields() {
   fields.value = await apiFetch('/api/fields')
@@ -208,7 +214,7 @@ onMounted(async () => {
 label { font-size: 0.85rem; font-weight: 700; color: #555; margin-bottom: 10px; }
 select, input { padding: 15px; border: 2px solid #f0f0f0; border-radius: 15px; font-family: inherit; font-size: 1rem; }
 select:focus { border-color: #4caf50; outline: none; }
-.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-top: 10px; }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 10px; }
 .slot-item { border: 2px solid #f0f0f0; padding: 15px 10px; border-radius: 15px; cursor: pointer; text-align: center; transition: 0.2s; }
 .slot-item.selected { background: #4caf50; border-color: #4caf50; color: white; }
 .slot-item.selected .price { color: white; }

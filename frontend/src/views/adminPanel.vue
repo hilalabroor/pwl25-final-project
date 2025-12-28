@@ -1,7 +1,26 @@
 <template>
-  <div style="max-width:1600px; margin:auto">
-    <h1>Admin Panel</h1>
-    <button @click="logout" style="margin-bottom:20px">Logout</button>
+    <div class="page-container">
+      <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <button @click="logout" class="logout-button">Logout</button>
+      </div>
+
+    
+
+    <!-- popup aksi untuk daftar lapangan-->
+    <div v-if="showFieldModal" class="modal-overlay">
+      <div class="modal">
+        <h3>{{ fieldForm.id ? 'Edit Lapangan' : 'Tambah Lapangan' }}</h3>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <input v-model="fieldForm.name" placeholder="Nama lapangan" style="padding:8px;min-width:220px" />
+          <input v-model="fieldForm.type" placeholder="Tipe (Indoor/Outdoor)" style="padding:8px;min-width:180px" />
+          <input v-model="fieldForm.deskripsi" placeholder="Deskripsi" style="padding:8px;min-width:260px" />
+          <input ref="fieldFileInput" type="file" accept="image/*" />
+          <button @click="submitField">{{ fieldForm.id ? 'Update' : 'Tambah' }}</button>
+          <button @click="cancelField">Batal</button>
+        </div>
+      </div>
+    </div>
 
     <div class="grid-2x2">
 
@@ -11,6 +30,7 @@
         <table border="1" cellspacing="0" cellpadding="5">
           <thead>
             <tr>
+              <th>Gambar</th>
               <th>Nama</th>
               <th>Tipe</th>
               <th>Deskripsi</th>
@@ -19,17 +39,21 @@
           </thead>
           <tbody>
             <tr v-for="field in fields" :key="field.id">
+              <td>
+                <img v-if="field.image" :src="absoluteImage(field.image)" alt="" style="width:120px;height:70px;object-fit:cover;border-radius:6px" />
+                <span v-else style="color:#888;font-size:12px">No image</span>
+              </td>
               <td>{{ field.name }}</td>
               <td>{{ field.type }}</td>
               <td>{{ field.deskripsi }}</td>
               <td>
-                <button @click="editField(field)">Edit</button>
+                <button @click="openEditField(field)">Edit</button>
                 <button @click="deleteField(field.id)">Hapus</button>
               </td>
             </tr>
           </tbody>
         </table>
-        <button @click="addField" style="margin-top:10px">Tambah Lapangan</button>
+        <button @click="openAddField" style="margin-top:10px">Tambah Lapangan</button>
       </section>
 
       <!-- Daftar Booking -->
@@ -96,47 +120,49 @@
         </button>
       </section>
 
-      <!-- Form Tambah / Edit -->
-      <section class="box" v-if="showForm">
-        <h3>{{ isEdit ? 'Edit Time Slot' : 'Tambah Time Slot' }}</h3>
-        <form @submit.prevent="submitSlot">
-          <div>
-            <label>Lapangan</label>
-            <select v-model="form.field_id" required>
-              <option value="">-- Pilih Lapangan --</option>
-              <option v-for="f in fields" :key="f.id" :value="f.id">
-                {{ f.name }}
-              </option>
-            </select>
-          </div>
+      <!-- Time slot modal -->
+      <div v-if="showForm" class="modal-overlay">
+        <div class="modal">
+          <h3>{{ isEdit ? 'Edit Time Slot' : 'Tambah Time Slot' }}</h3>
+          <form @submit.prevent="submitSlot">
+            <div>
+              <label>Lapangan</label>
+              <select v-model="form.field_id" required>
+                <option value="">-- Pilih Lapangan --</option>
+                <option v-for="f in fields" :key="f.id" :value="f.id">{{ f.name }}</option>
+              </select>
+            </div>
 
-          <div>
-            <label>Jam Mulai</label>
-            <input type="time" v-model="form.start_time" required>
-          </div>
+            <div>
+              <label>Jam Mulai</label>
+              <input type="time" v-model="form.start_time" required>
+            </div>
 
-          <div>
-            <label>Jam Selesai</label>
-            <input type="time" v-model="form.end_time" required>
-          </div>
+            <div>
+              <label>Jam Selesai</label>
+              <input type="time" v-model="form.end_time" required>
+            </div>
 
-          <div>
-            <label>Harga</label>
-            <input type="number" v-model="form.price" required>
-          </div>
+            <div>
+              <label>Harga</label>
+              <input type="number" v-model="form.price" required>
+            </div>
 
-          <div v-if="isEdit">
-            <label>Status</label>
-            <select v-model="form.status">
-              <option :value="0">Tersedia</option>
-              <option :value="1">Booked</option>
-            </select>
-          </div>
+            <div v-if="isEdit">
+              <label>Status</label>
+              <select v-model="form.status">
+                <option :value="0">Tersedia</option>
+                <option :value="1">Booked</option>
+              </select>
+            </div>
 
-          <button type="submit">{{ isEdit ? 'Update' : 'Simpan' }}</button>
-          <button type="button" @click="resetForm">Batal</button>
-        </form>
-      </section>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button type="submit">{{ isEdit ? 'Update' : 'Simpan' }}</button>
+              <button type="button" @click="resetForm">Batal</button>
+            </div>
+          </form>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -146,7 +172,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { apiFetch } from '../api.js'
+import { apiFetch, API_BASE_URL } from '../api.js'
 
 const router = useRouter()
 const token = localStorage.getItem('token')
@@ -156,6 +182,11 @@ const token = localStorage.getItem('token')
 const fields = ref([])
 const bookings = ref([])
 const timeSlots = ref([])
+
+// field modal state (single modal for add & edit)
+const showFieldModal = ref(false)
+const fieldForm = ref({ id: null, name: '', type: '', deskripsi: '' })
+const fieldFileInput = ref(null)
 
 const showForm = ref(false)
 const isEdit = ref(false)
@@ -178,41 +209,50 @@ async function loadBookings() {
   bookings.value = await apiFetch('/api/bookings')
 }
 
-// tambah lapangan
-async function addField() {
-  const name = prompt('Nama Lapangan:')
-  const type = prompt('Tipe Lapangan:')
-  const deskripsi = prompt('Deskripsi Lapangan:')
-  if (!name || !type || !deskripsi) return alert('Data tidak lengkap')
+// open add-field modal
+function openAddField() {
+  fieldForm.value = { id: null, name: '', type: '', deskripsi: '' }
+  if (fieldFileInput.value) fieldFileInput.value.value = ''
+  showFieldModal.value = true
+}
+
+// open edit-field modal with prefill
+function openEditField(field) {
+  fieldForm.value = { id: field.id, name: field.name, type: field.type, deskripsi: field.deskripsi }
+  if (fieldFileInput.value) fieldFileInput.value.value = ''
+  showFieldModal.value = true
+}
+
+async function submitField() {
+  if (!fieldForm.value.name || !fieldForm.value.type) return alert('Nama dan tipe harus diisi')
+  const fd = new FormData()
+  fd.append('name', fieldForm.value.name)
+  fd.append('type', fieldForm.value.type)
+  fd.append('deskripsi', fieldForm.value.deskripsi)
+  const file = fieldFileInput.value?.files?.[0]
+  if (file) fd.append('image', file)
 
   try {
-    const data = await apiFetch('/api/fields', {
-      method: 'POST',
-      body: { name, type, deskripsi },
-    })
-    alert(data.message)
+    if (fieldForm.value.id) {
+      const data = await apiFetch(`/api/fields/${fieldForm.value.id}`, { method: 'PUT', body: fd })
+      alert(data.message)
+    } else {
+      const data = await apiFetch('/api/fields', { method: 'POST', body: fd })
+      alert(data.message)
+    }
+    showFieldModal.value = false
+    fieldForm.value = { id: null, name: '', type: '', deskripsi: '' }
+    if (fieldFileInput.value) fieldFileInput.value.value = ''
   } catch (err) {
-    alert(err?.message || 'Gagal menambah lapangan')
+    alert(err?.message || 'Gagal menyimpan lapangan')
   }
   loadFields()
 }
 
-// edit lapangan
-async function editField(field) {
-  const name = prompt('Nama Lapangan:', field.name) || field.name
-  const type = prompt('Tipe Lapangan:', field.type) || field.type
-  const deskripsi = prompt('Deskripsi Lapangan:', field.deskripsi) || field.deskripsi
-
-  try {
-    const data = await apiFetch(`/api/fields/${field.id}`, {
-      method: 'PUT',
-      body: { name, type, deskripsi },
-    })
-    alert(data.message)
-  } catch (err) {
-    alert(err?.message || 'Gagal update lapangan')
-  }
-  loadFields()
+function cancelField() {
+  fieldForm.value = { id: null, name: '', type: '', deskripsi: '' }
+  if (fieldFileInput.value) fieldFileInput.value.value = ''
+  showFieldModal.value = false
 }
 
 // hapus lapangan
@@ -334,6 +374,13 @@ function bookingStatusLabel(status) {
   return '-'
 }
 
+function absoluteImage(path) {
+  if (!path) return ''
+  if (path.startsWith('http') || path.startsWith('data:')) return path
+  // make absolute to backend
+  return API_BASE_URL.replace(/\/$/, '') + path
+}
+
 async function completeBooking(booking) {
   if (!confirm('Tandai booking ini sebagai selesai?')) return
     const res = await fetch(`http://localhost:3000/api/bookings/${booking.id}/status`, {
@@ -363,10 +410,11 @@ onMounted(() => {
 <style scoped>
 
 /* container utama */
-div {
-  max-width: 100%;
-  margin: 40px auto;
+.page-container {
+  max-width: 1600px;
+
   padding: 20px;
+  padding-top: 90px;
   background-color: #f9f9f9;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -445,6 +493,7 @@ button[disabled] {
 button:first-of-type {
   background-color: #f44336;
   color: white;
+  /* buat tombol logout */
 }
 
 /* Tombol aksi lainnya */
@@ -482,5 +531,49 @@ select {
     display: block;
     overflow-x: auto;
   }
+}
+
+/* modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: min(900px, 95%);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.modal h3 { margin-top: 0; }
+
+.modal--small {
+  width: min(520px, 95%);
+  padding: 14px;
+}
+
+/* header (fixed navbar) */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  padding: 12px 20px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  z-index: 8000;
+}
+.admin-header h1 { margin: 0; }
+.logout-button {
+  background-color: #f44336;
+  color: white;
 }
 </style>

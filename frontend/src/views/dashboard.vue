@@ -20,9 +20,9 @@
       <section v-if="userRole === 'user'" class="cards-wrap">
         <div class="cards-grid">
           <div class="card" v-for="f in featuredFields" :key="f.id">
-            <div class="card-image">
-              <img :src="f.image" />
-            </div>
+              <div class="card-image">
+                <img :src="f.image ? (f.image.startsWith('http') ? f.image : API_BASE_URL + f.image) : ''" />
+              </div>
             <div class="card-body">
               <div class="card-title">{{ f.name }}</div>
               <div class="card-subtitle">{{ f.location }}</div>
@@ -66,7 +66,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { decodeJwtPayload, apiFetch } from '../api.js'
+import { decodeJwtPayload, apiFetch, API_BASE_URL } from '../api.js'
 
 const router = useRouter()
 const userRole = ref('')
