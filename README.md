@@ -161,3 +161,32 @@ Judul: Sistem Booking Lapangan (BookMyField), Sistem ini memungkinkan user untuk
     URL: http://localhost:3000/api/time-slots/:id
    
     Digunakan saat admin ingin menghapus data jam lapangan
+
+### ERD
+   <img width="793" height="749" alt="ERD Tubes PWL  drawio" src="https://github.com/user-attachments/assets/7cb28f0a-4844-4266-ab2e-125c381f689d" />
+
+   Penjelasan Tabel: 
+1. Users
+
+   Tabel ini digunakan untuk menyimpan data pengguna, baik itu user maupun 
+   admin. Tabel ini berisi kolom id, name, email, password, dan rule (admin/user). Rule 
+   disini digunakan untuk menentukan hak akses di sistem (misalnya admin bisa 
+   menambah dan menghapus lapangan). 
+   
+2. Fields 
+  
+   Tabel ini digunakan untuk menyimpan data lapangan yang tersedia untuk 
+   booking. Tabel ini berisi kolom id, name, type, deskripsi, price, dan lokasi. Tabel ini 
+   juga digunakan untuk menampilkan informasi lapangan pada frontend. 
+   
+3. Time_Slot 
+   
+   Tabel ini digunakan untuk menyimpan data jam atau slot waktu yang tersedia di 
+   lapangan. Tabel ini berisi kolom id. start_time, dan end_time. Tabel ini juga 
+   digunakan untuk menentukan kapan lapangan bisa di pesan. 
+
+4. Bookings 
+   
+   Tabel ini digunakan untuk menyimpan data pemesanan yang dilakukan 
+   pengguna. Tabel ini berisi kolom id, user_id, field_id, time_slot_id, booking_date, 
+   dan status. Status bisa berupa aktif atau selesai untuk menandai proses booking.
